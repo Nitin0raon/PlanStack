@@ -13,7 +13,7 @@ export default function Home() {
           with
           <p>kdjkjkafndfdkf;a</p>
         </h1>
-        <p className="text-amber-50 mt-2 mb-10">empower your team with us</p>
+        <p className="text-amber-50 mt-2 mb-10">empower your team  with us</p>
         <Link href='/onboarding'><Button size='lg' variant='mybut' className="mr-4">Get Started<ChevronRight/></Button></Link>
         <Link href='#features'><Button size='lg' variant='outline' className="mr-4">Learn More<ChevronRight/></Button></Link>
       </section>
