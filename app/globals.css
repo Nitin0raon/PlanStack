@@ -125,3 +125,6 @@
   background-image: radial-gradient(#4a5568 1px, transparent 1px);
   background-size: 30px 30px;
 }
+html {
+  scroll-behavior: smooth;
+}
