@@ -40,6 +40,7 @@ export async function getOrganization(slug) {
   // if (!userMembership) {
   //   return null;
   // }
+  //kjdkfjakjkjdiiefj
 
   return response; // optionally: { organization, userMembership }
 }
