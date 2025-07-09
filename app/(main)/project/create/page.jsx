@@ -13,20 +13,20 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 const CreateProjectPage = () => {
-    const router= useRouter();
+    const router = useRouter();
 
     const { register, handleSubmit, formState: { errors, } } = useForm({
         resolver: zodResolver(projectSchema),
     })
-    const{data:project,loading,error,fn:createProjectFn,}= useFetch(createProject)
+    const { data: project, loading, error, fn: createProjectFn, } = useFetch(createProject)
 
-    useEffect(()=>{
-        if(project){
+    useEffect(() => {
+        if (project) {
             toast.success("submit successfully");
             router.push(`/project/${project.id}`);
         }
-    },[loading]);
-    const onSubmit= async (data)=>{
+    }, [loading]);
+    const onSubmit = async (data) => {
         createProjectFn(data);
     }
     return (
@@ -49,15 +49,20 @@ const CreateProjectPage = () => {
                         {errors.key && <p className="text-red-500 text-sm mt-1">{errors.key.message}</p>}
                     </div>
                     <div>
-                        <Textarea id='description'
-                            className=" bg-slate-950" placeholder="project Description"
+                        <Textarea
+                            id='description'
+                            className="bg-slate-950 h-32 resize-y"
+                            placeholder="Project Description"
                             {...register("description")}
                         />
-                        {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+                        {errors.description && (
+                            <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>
+                        )}
                     </div>
+
                     <Button disabled={loading} type="submit" size="lg" className="bg-blue-600">C
-                        {loading ? "Creating...":"create Project"}</Button>
-                         {error&& <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
+                        {loading ? "Creating..." : "create Project"}</Button>
+                    {error && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
                 </form>
             </div>
 
