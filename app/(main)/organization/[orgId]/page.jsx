@@ -1,46 +1,76 @@
+// import { getOrganization } from '@/actions/organization';
+// import OrgSwitcher from '@/components/org-switcher';
+// import ProjectList from './_components/project.list';
+
+// const Organization = async ({ params }) => {
+//   const { orgId } = params; // ✅ No await here
+//   const organization = await getOrganization(orgId);
+
+//   console.log("✅ organization object:", organization.name);
+
+//   if (!organization) {
+//     return (
+//       <div className="text-red-500 text-center py-10">
+//         <p>Organization not found or you do not have permission to view it.</p>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className='text-amber-50'>
+//       <div className='mb-4 flex flex-col sm:flex-row justify-between items-start'>
+//         <h1 className='text-5xl font-bold pb-2 '>{organization.name ?? 'Organization'}'s Project</h1>
+//         <OrgSwitcher />
+//       </div>
+//       <div>
+//         <ProjectList orgId={organization.id} />
+//       </div>
+//       <div>
+//         Show user assigned and reported issue here
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default Organization;
+
+
+
+
+// NO "use client" here – this must remain a server component
+
 import { getOrganization } from '@/actions/organization';
 import OrgSwitcher from '@/components/org-switcher';
-import React from 'react';
 import ProjectList from './_components/project.list';
-// import { redirect } from 'next/navigation'; // Only if you want to redirect instead of rendering a message
 
-const Organization = async ({ params }) => {
-  const { orgId } = await params;
-  const organization = await getOrganization(orgId);
-  // console.log("✅ user id:", organization); for checking output
+const OrganizationPage = async ({ params }) => {
+  const { orgId } = params; // ✅ only works if server component
+  const { organization: orgData } = await getOrganization(orgId); // ✅ FIXED destructuring
 
-  // --- Handle the case where getOrganization returns null ---
-  if (!organization) {
-    // Option 1: Render a message
+  if (!orgData) {
     return (
       <div className="text-red-500 text-center py-10">
         <p>Organization not found or you do not have permission to view it.</p>
-        {/* You might add a link here, e.g., <Link href="/dashboard">Go to Dashboard</Link> */}
       </div>
     );
-
-    // Option 2: Redirect to another page (uncomment import at top if using this)
-    // console.log("Organization not found or access denied. Redirecting.");
-    // redirect('/'); // Redirect to home or a dedicated access denied page
   }
 
-  // --- If organization is found, render its details ---
+  // console.log("✅ organization name:", orgData);
+
   return (
-    <div>
-      <div className='text-amber-50'>
-        <div className='mb-4 flex flex-col sm:flex-row justify-between items-start'>
-          <h1 className='text-5xl font-bold pb-2 '>{organization.name}'s Project</h1> {/* This will now be safe because organization is not null */}
-        <OrgSwitcher/>
-        </div>
-        <div>
-          <ProjectList orgId={organization.id}/>
-        </div>
-        <div>
-          Show user assigned and reported issue here
-        </div>
+    <div className='text-amber-50'>
+      <div className='mb-4 flex flex-col sm:flex-row justify-between items-start'>
+        <h1 className='text-5xl font-bold pb-2 '>{orgData.name ?? 'Organization'}'s Project</h1>
+        <OrgSwitcher className='text-amber-50' />
+      </div>
+      <div>
+        <ProjectList orgId={orgData.id} />
+      </div>
+      <div>
+        Show user assigned and reported issue here
       </div>
     </div>
   );
 };
 
-export default Organization;
+export default OrganizationPage;

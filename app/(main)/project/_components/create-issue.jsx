@@ -22,7 +22,7 @@ import {
 import MDEditor from "@uiw/react-md-editor";
 import useFetch from "@/hooks/use-fetch";
 import { createIssue } from "@/actions/issues";
-// import { getOrganizationUsers } from "@/actions/organization";
+import { getOrganizationUsers } from "@/actions/organization";
 import { issueSchema } from "@/app/lib/validators";
 
 export default function IssueCreationDrawer({
@@ -41,11 +41,11 @@ export default function IssueCreationDrawer({
     data: newIssue,
   } = useFetch(createIssue);
 
-//   const {
-//     loading: usersLoading,
-//     fn: fetchUsers,
-//     data: users =" ", // assume default empty array
-//   } = useFetch(getOrganizationUsers);
+  const {
+    loading: usersLoading,
+    fn: fetchUsers,
+    data: users,
+  } = useFetch(getOrganizationUsers);
 
   const {
     control,
@@ -62,11 +62,11 @@ export default function IssueCreationDrawer({
     },
   });
 
-//   useEffect(() => {
-//     if (isOpen && orgId) {
-//       fetchUsers(orgId);
-//     }
-//   }, [isOpen, orgId]);
+  useEffect(() => {
+  if (isOpen && orgId) {
+    fetchUsers(orgId).then((res) => console.log("Fetched users:", res));
+  }
+}, [isOpen, orgId]);
 
   const onSubmit = async (data) => {
     await createIssueFn(projectId, {
@@ -83,7 +83,7 @@ export default function IssueCreationDrawer({
       onIssueCreated();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [newIssue]);
+  }, [newIssue, createIssueLoading]);
 
   return (
     <Drawer open={isOpen} onClose={onClose}>
@@ -91,7 +91,7 @@ export default function IssueCreationDrawer({
         <DrawerHeader>
           <DrawerTitle>Create New Issue</DrawerTitle>
         </DrawerHeader>
-        {/* {usersLoading && <BarLoader width={"100%"} color="#36d7b7" />} */}
+        {usersLoading && <BarLoader width={"100%"} color="#36d7b7" />}
         <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4">
           <div>
             <label htmlFor="title" className="block text-sm font-medium mb-1">
@@ -105,22 +105,28 @@ export default function IssueCreationDrawer({
             )}
           </div>
 
-          {/* <div>
-            <label htmlFor="assigneeId" className="block text-sm font-medium mb-1">
+          <div>
+            <label
+              htmlFor="assigneeId"
+              className="block text-sm font-medium mb-1"
+            >
               Assignee
             </label>
             <Controller
               name="assigneeId"
               control={control}
               render={({ field }) => (
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select assignee" />
                   </SelectTrigger>
                   <SelectContent>
-                    {users.map((user) => (
+                    {users?.map((user) => (
                       <SelectItem key={user.id} value={user.id}>
-                        {user.name}
+                        {user?.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -132,10 +138,13 @@ export default function IssueCreationDrawer({
                 {errors.assigneeId.message}
               </p>
             )}
-          </div> */}
+          </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-medium mb-1">
+            <label
+              htmlFor="description"
+              className="block text-sm font-medium mb-1"
+            >
               Description
             </label>
             <Controller
@@ -148,14 +157,20 @@ export default function IssueCreationDrawer({
           </div>
 
           <div>
-            <label htmlFor="priority" className="block text-sm font-medium mb-1">
+            <label
+              htmlFor="priority"
+              className="block text-sm font-medium mb-1"
+            >
               Priority
             </label>
             <Controller
               name="priority"
               control={control}
               render={({ field }) => (
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
@@ -171,7 +186,11 @@ export default function IssueCreationDrawer({
           </div>
 
           {error && <p className="text-red-500 mt-2">{error.message}</p>}
-          <Button type="submit" disabled={createIssueLoading} className="w-full">
+          <Button
+            type="submit"
+            disabled={createIssueLoading}
+            className="w-full"
+          >
             {createIssueLoading ? "Creating..." : "Create Issue"}
           </Button>
         </form>
