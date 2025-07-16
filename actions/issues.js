@@ -25,7 +25,7 @@ export async function createIssue(projectId, data){
       projectId: projectId,
       sprintId: data.sprintId,
       reporterId: user.id,
-      assigneeId: data.assigneeId || null, // Add this line
+      assigneeId: data.assigneeId , // Add this line
       order: newOrder,
     },
     include: {
@@ -48,6 +48,7 @@ export async function getIssuesForSprint(sprintId) {
     where: { sprintId: sprintId },
     orderBy: [{ status: "asc" }, { order: "asc" }],
     include: {
+      assignee:true,
       reporter: true,
     },
   });

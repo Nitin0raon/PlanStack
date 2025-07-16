@@ -1,12 +1,14 @@
 "use client";
 import React, { use, useEffect, useState } from 'react'
 import SprintManager from './sprint-manager';
-import { DragDropContext, Droppable } from '@hello-pangea/dnd';
+import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import IssueCreationDrawer from './create-issue';
 import { getIssuesForSprint } from '@/actions/issues';
 import useFetch from '@/hooks/use-fetch';
+import { BarLoader } from 'react-spinners';
+import IssueCard from '@/components/issue.card';
 const SprintBoard = ({sprints,projectId,orgId}) => {
 
   const statuses = [
@@ -41,8 +43,76 @@ const SprintBoard = ({sprints,projectId,orgId}) => {
     }
    },[currentSprint.id])
   const[filteredIssues, setFilteredIssues] = useState(issues);  
+
   const handleIssueCreated = () => {}
-  const onDragEnd = () => {}
+  const onDragEnd = async (result) => {
+    if (currentSprint.status === "PLANNED") {
+      toast.warning("Start the sprint to update board");
+      return;
+    }
+    if (currentSprint.status === "COMPLETED") {
+      toast.warning("Cannot update board after sprint end");
+      return;
+    }
+    const { destination, source } = result;
+
+    if (!destination) {
+      return;
+    }
+
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+
+    const newOrderedData = [...issues];
+
+    // source and destination list
+    const sourceList = newOrderedData.filter(
+      (list) => list.status === source.droppableId
+    );
+
+    const destinationList = newOrderedData.filter(
+      (list) => list.status === destination.droppableId
+    );
+
+    if (source.droppableId === destination.droppableId) {
+      const reorderedCards = reorder(
+        sourceList,
+        source.index,
+        destination.index
+      );
+
+      reorderedCards.forEach((card, i) => {
+        card.order = i;
+      });
+    } else {
+      // remove card from the source list
+      const [movedCard] = sourceList.splice(source.index, 1);
+
+      // assign the new list id to the moved card
+      movedCard.status = destination.droppableId;
+
+      // add new card to the destination list
+      destinationList.splice(destination.index, 0, movedCard);
+
+      sourceList.forEach((card, i) => {
+        card.order = i;
+      });
+
+      // update the order for each card in destination list
+      destinationList.forEach((card, i) => {
+        card.order = i;
+      });
+    }
+
+    const sortedIssues = newOrderedData.sort((a, b) => a.order - b.order);
+    setIssues(newOrderedData, sortedIssues);
+
+    updateIssueOrderFn(sortedIssues);
+  };
 
   const handleAddIssue = (status) => {
     setSelectedStatus(status);
@@ -57,7 +127,7 @@ const SprintBoard = ({sprints,projectId,orgId}) => {
         sprints={sprints}
         projectId={projectId}
       />
-
+      {issueLoading && <BarLoader className='mt-4' width={"100%"} color="#36d7b7"/>}
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 bg-slate-900 p-4 rounded-lg">
           {statuses.map((column) => (
@@ -71,14 +141,14 @@ const SprintBoard = ({sprints,projectId,orgId}) => {
                   <h3 className="font-semibold mb-2 text-center">
                     {column.name}
                   </h3>
-                  {/* {filteredIssues
+                  {issues
                     ?.filter((issue) => issue.status === column.key)
                     .map((issue, index) => (
                       <Draggable
                         key={issue.id}
                         draggableId={issue.id}
                         index={index}
-                        isDragDisabled={updateIssuesLoading}
+                        // isDragDisabled={updateIssuesLoading}
                       >
                         {(provided) => (
                           <div
@@ -101,7 +171,7 @@ const SprintBoard = ({sprints,projectId,orgId}) => {
                           </div>
                         )}
                       </Draggable>
-                    ))} */}
+                    ))}
                   {provided.placeholder}
                   {column.key === "TODO" &&
                     currentSprint.status !== "COMPLETED" && (

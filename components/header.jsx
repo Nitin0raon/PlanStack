@@ -1,4 +1,4 @@
-import {SignedIn, SignedOut, SignInButton} from '@clerk/nextjs'
+import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'
 import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
@@ -7,53 +7,52 @@ import UserMenu from './user-menu'
 import { checkUser } from '@/lib/checkUser'
 import UserLoading from './user-loading'
 
-const Header = async() => {
+const Header = async () => {
   await checkUser();
   return (
     <header className='container mx-auto'>
-        <nav className='py-6 px-4 flex justify-between items-center'>
-            <Link href='/'>
-            <Image
-             src={'/logo.jpg'} alt='PlanStack logo' width={200} height={56}
-             className='h-10 w-auto object-contain'/>
-            </Link>
-        
+      <nav className='py-6 px-4 flex justify-between items-center'>
+        <Link href='/'>
+          <Image
+            src={'/logo.jpg'} alt='PlanStack logo' width={200} height={56}
+            className='h-10 w-auto object-contain' />
+        </Link>
+
         <div className='flex item-center gap-4'>
-            <Link href={'/project/create'}>
+          <Link href={'/project/create'}>
             <Button variant="mybut">
-                <span>Create Project</span>
+              <span>Create Project</span>
             </Button>
-            </Link>
-            <SignedOut>
-            <SignInButton forceRedirectUrl='/onboarding'>
-            <Button variant='outline'>Login</Button>
+          </Link>
+          <SignedOut>
+            <SignInButton forceRedirectUrl='/'>
+              <Button variant='outline'>Login</Button>
             </SignInButton>
-        </SignedOut>
-        <SignedIn>
-            <UserMenu/>
-        </SignedIn>
+          </SignedOut>
+          <SignedIn>
+            <UserMenu />
+          </SignedIn>
         </div>
-        </nav>
-        {/* <UserLoading/> */}
+      </nav>
+      <UserLoading/>
     </header>
   )
 }
-
 export default Header
 
-// import { SignedIn, SignedOut, SignIn, SignInButton, UserButton } from '@clerk/nextjs'
-// import React from 'react'
 
+// import React from 'react'
+// import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs'
 // const Header = () => {
 //   return (
-//     <>
-//     <SignedOut>
+//     <div>
+//       <SignedOut>
 //         <SignInButton/>
-//     </SignedOut>
-//     <SignedIn>
+//       </SignedOut>
+//       <SignedIn>
 //         <UserButton/>
-//     </SignedIn>
-//     </>
+//       </SignedIn>
+//     </div>
 //   )
 // }
 

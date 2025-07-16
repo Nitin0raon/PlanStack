@@ -24,6 +24,7 @@ import useFetch from "@/hooks/use-fetch";
 import { createIssue } from "@/actions/issues";
 import { getOrganizationUsers } from "@/actions/organization";
 import { issueSchema } from "@/app/lib/validators";
+import { useRouter } from "next/navigation";
 
 export default function IssueCreationDrawer({
   isOpen,
@@ -47,6 +48,8 @@ export default function IssueCreationDrawer({
     data: users,
   } = useFetch(getOrganizationUsers);
 
+  
+
   const {
     control,
     register,
@@ -61,6 +64,10 @@ export default function IssueCreationDrawer({
       assigneeId: "",
     },
   });
+
+
+  const router = useRouter();
+
 
   useEffect(() => {
   if (isOpen && orgId) {
@@ -81,6 +88,7 @@ export default function IssueCreationDrawer({
       reset();
       onClose();
       onIssueCreated();
+      router.refresh();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newIssue, createIssueLoading]);

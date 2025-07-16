@@ -1,53 +1,3 @@
-// "use server";
-
-// import { db } from "@/lib/prisma";
-// import { auth} from "@clerk/nextjs/server";
-// import { clerkClient } from "@clerk/clerk-sdk-node";
-
-// export async function getOrganization(slug) {
-//   const { userId } = await auth();
-//   if (!userId) {
-//     throw new Error("Unauthorized");
-//   }
-
-//   const user = await db.user.findUnique({
-//     where: { clerkUserId: userId },
-//   });
-
-//   if (!user) {
-//     throw new Error("User not found");
-//   }
-
-//   const response = await clerkClient.organizations.getOrganization({ slug })
-//   if (!response) {
-//     return null;
-//   }
-
-//   // // // --- FIX STARTS HERE ---
-//   // const { data } = await clerkClient.organizations.getOrganizationMembershipList({
-//   //   organizationId: response.id,
-//   // });
-
-//   // // // Ensure 'data' is an array before trying to assign it to membership
-//   // const membership = Array.isArray(data) ? data : [];
-
-//   // // // --- FIX ENDS HERE ---
-
-//   // const userMembership = membership.find(
-//   //   (member) => member.publicUserData?.userId === userId // Added optional chaining for safety
-//   // );
-
-//   // if (!userMembership) {
-//   //   return null;
-//   // }
-//   //kjdkfjakjkjdiiefj
-
-//   return response; // optionally: { organization, userMembership }
-// }
-
-
-
-
 
 "use server";
 
@@ -128,50 +78,14 @@ export async function getOrganization(slug) {
     throw new Error("Organization not found or you do not have permission to view it.");
   }
 }
-
-
-
-
-// export async function getOrganizationUsers(orgId) {
-//   const { userId } = await auth();
-//   if (!userId) throw new Error("Unauthorized");
-
-//   const membershipsResponse = await clerkClient.organizations.getOrganizationMembershipList({
-//     organizationId: orgId,
-//   });
-
-//   const memberships = Array.isArray(membershipsResponse)
-//     ? membershipsResponse
-//     : Array.isArray(membershipsResponse.items)
-//       ? membershipsResponse.items
-//       : [];
-
-//   const users = memberships.map((m) => ({
-//     id: m.publicUserData?.userId,
-//     name:
-//       m.publicUserData?.firstName && m.publicUserData?.lastName
-//         ? `${m.publicUserData.firstName} ${m.publicUserData.lastName}`
-//         : m.publicUserData?.identifier || "Unnamed User",
-//     email: m.publicUserData?.identifier,
-//   })).filter((u) => u.id); // Remove undefined/null
-
-//   console.log("👥 Clerk users for org:", users);
-//   return users;
-// }
-
 export async function getOrganizationUsers(orgId) {
   const { userId } = await auth();
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
+  if (!userId) throw new Error("Unauthorized");
 
-  const user = await db.user.findUnique({
+  const requestingUser = await db.user.findUnique({
     where: { clerkUserId: userId },
   });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
+  if (!requestingUser) throw new Error("User not found");
 
   const membershipsResponse = await clerkClient.organizations.getOrganizationMembershipList({
     organizationId: orgId,
@@ -183,23 +97,32 @@ export async function getOrganizationUsers(orgId) {
       ? membershipsResponse.items
       : [];
 
-  if (!Array.isArray(memberships)) {
-    console.error("Memberships not returned as an array");
-    return [];
-  }
+  // Get all clerk user IDs from membership list
+  const clerkUserIds = memberships
+    .map((m) => m.publicUserData?.userId)
+    .filter(Boolean);
 
-  const userIds = memberships
-    .map((membership) => membership.publicUserData?.userId)
-    .filter(Boolean); // Remove null/undefined just in case
-
-  const users = await db.user.findMany({
+  // Fetch corresponding users from your DB
+  const localUsers = await db.user.findMany({
     where: {
       clerkUserId: {
-        in: userIds,
+        in: clerkUserIds,
       },
     },
   });
-  console.log("users", users);
 
-  return users;
+  // Map local user ID + Clerk name
+  const combinedUsers = localUsers.map((dbUser) => {
+    const membership = memberships.find(
+      (m) => m.publicUserData?.userId === dbUser.clerkUserId
+    );
+
+    return {
+      id: dbUser.id, // use local DB ID
+      name: `${membership?.publicUserData?.firstName ?? ""}`.trim(),
+    };
+  });
+
+  return combinedUsers;
 }
+
