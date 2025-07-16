@@ -40,3 +40,21 @@ const Header = async() => {
 }
 
 export default Header
+
+// import { SignedIn, SignedOut, SignIn, SignInButton, UserButton } from '@clerk/nextjs'
+// import React from 'react'
+
+// const Header = () => {
+//   return (
+//     <>
+//     <SignedOut>
+//         <SignInButton/>
+//     </SignedOut>
+//     <SignedIn>
+//         <UserButton/>
+//     </SignedIn>
+//     </>
+//   )
+// }
+
+// export default Header

@@ -25,11 +25,11 @@ export default function RootLayout({ children }) {
         <Header/>
         <main className="min-h-screen">{children}</main>
         <Toaster richColors/>
-        <footer className=" bg-green-800 py-12 flex align-center justify-center">
+        {/* <footer className=" bg-green-800 py-12 flex align-center justify-center">
           <div className="container mx-auto px-4 text-center">
             <p >this is footer</p>
           </div>
-        </footer>
+        </footer> */}
       </body>
     </html>
     </ClerkProvider>
