@@ -5,11 +5,17 @@ import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import IssueCreationDrawer from './create-issue';
-import { getIssuesForSprint } from '@/actions/issues';
+import { getIssuesForSprint, updateIssueOrder } from '@/actions/issues';
 import useFetch from '@/hooks/use-fetch';
 import { BarLoader } from 'react-spinners';
 import IssueCard from '@/components/issue.card';
+import { toast } from 'sonner';
+
+
+
 const SprintBoard = ({sprints,projectId,orgId}) => {
+
+  
 
   const statuses = [
     { name: "Todo", key: "TODO" },
@@ -17,6 +23,15 @@ const SprintBoard = ({sprints,projectId,orgId}) => {
     { name: "In Review", key: "IN_REVIEW" },
     { name: "Done", key: "DONE" },
   ];
+
+  function reorder(list, startIndex, endIndex) {
+  const result = Array.from(list);
+  const [removed] = result.splice(startIndex, 1);
+  result.splice(endIndex, 0, removed);
+  return result;
+}
+
+
 
   const [currentSprint, setCurrentSprint] = useState(
     sprints.find((spr)=> spr.status === "ACTIVE") || sprints[0]
@@ -34,7 +49,7 @@ const SprintBoard = ({sprints,projectId,orgId}) => {
     setData:setIssues,} = useFetch(getIssuesForSprint);
 
 
-   console.log("Issues", issues);
+  //  console.log("Issues", issues);
 
 
    useEffect(() => {
@@ -42,9 +57,19 @@ const SprintBoard = ({sprints,projectId,orgId}) => {
       fetchIssues(currentSprint.id);
     }
    },[currentSprint.id])
+
+
   const[filteredIssues, setFilteredIssues] = useState(issues);  
 
-  const handleIssueCreated = () => {}
+  const {
+    fn: updateIssueOrderFn,
+    loading: updateIssuesLoading,
+    error: updateIssuesError,
+  } = useFetch(updateIssueOrder);
+
+const handleIssueCreated = () => {
+  fetchIssues(currentSprint.id);
+};
   const onDragEnd = async (result) => {
     if (currentSprint.status === "PLANNED") {
       toast.warning("Start the sprint to update board");
@@ -73,6 +98,8 @@ const SprintBoard = ({sprints,projectId,orgId}) => {
     const sourceList = newOrderedData.filter(
       (list) => list.status === source.droppableId
     );
+
+    
 
     const destinationList = newOrderedData.filter(
       (list) => list.status === destination.droppableId
@@ -109,9 +136,11 @@ const SprintBoard = ({sprints,projectId,orgId}) => {
     }
 
     const sortedIssues = newOrderedData.sort((a, b) => a.order - b.order);
-    setIssues(newOrderedData, sortedIssues);
+setIssues(sortedIssues); // ✅ Only one argument
+
 
     updateIssueOrderFn(sortedIssues);
+    fetchIssues(currentSprint.id);
   };
 
   const handleAddIssue = (status) => {
@@ -127,7 +156,7 @@ const SprintBoard = ({sprints,projectId,orgId}) => {
         sprints={sprints}
         projectId={projectId}
       />
-      {issueLoading && <BarLoader className='mt-4' width={"100%"} color="#36d7b7"/>}
+      {(issueLoading) && <BarLoader className='mt-4' width={"100%"} color="#36d7b7"/>}
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 bg-slate-900 p-4 rounded-lg">
           {statuses.map((column) => (
@@ -148,7 +177,7 @@ const SprintBoard = ({sprints,projectId,orgId}) => {
                         key={issue.id}
                         draggableId={issue.id}
                         index={index}
-                        // isDragDisabled={updateIssuesLoading}
+                        isDragDisabled={updateIssuesLoading}
                       >
                         {(provided) => (
                           <div

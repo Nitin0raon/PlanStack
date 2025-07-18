@@ -69,9 +69,27 @@
 // };
 
 
-import { clerkMiddleware } from '@clerk/nextjs/server';
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
-export default clerkMiddleware();
+  const isProtectedRoute = createRouteMatcher([
+  '/onboarding(.*)',
+  '/organization(.*)',
+  '/project(.*)',
+  '/issue(.*)',
+  '/sprint(.*)',
+]);
+
+export default clerkMiddleware(async(auth,req)=>{
+  const {userId, redirectToSignIn} =await auth();
+
+  if(!userId && isProtectedRoute(req)){
+    return redirectToSignIn({returnBackUrl:req.url});
+  }
+  if(auth().userId && !auth().orgId && req.nextUrl.pathname !== '/onboarding' && req.nextUrl.pathname !== '/'){
+    return NextResponse.redirect(new URL('/',req.url));
+  }
+});
 
 export const config = {
   matcher: [

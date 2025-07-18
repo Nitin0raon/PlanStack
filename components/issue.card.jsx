@@ -13,6 +13,7 @@ import { formatDistanceToNow } from "date-fns";
 
 import { useRouter } from "next/navigation";
 import UserAvatar from "./user-avatar";
+import IssueDetailsDialog from "./issue-details-dialog";
 
 const priorityColor = {
   LOW: "border-green-600",
@@ -69,7 +70,7 @@ export default function IssueCard({
         </CardFooter>
       </Card>
 
-      {/* {isDialogOpen && (
+      {isDialogOpen && (
         <IssueDetailsDialog
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
@@ -78,7 +79,7 @@ export default function IssueCard({
           onUpdate={onUpdateHandler}
           borderCol={priorityColor[issue.priority]}
         />
-      )} */}
+      )}
     </>
   );
 }
