@@ -44,7 +44,7 @@ import OrgSwitcher from '@/components/org-switcher';
 import ProjectList from './_components/project.list';
 
 const OrganizationPage = async ({ params }) => {
-  const { orgId } = params; // ✅ only works if server component
+  const { orgId } = await params; // ✅ only works if server component
   const { organization: orgData } = await getOrganization(orgId); // ✅ FIXED destructuring
 
   if (!orgData) {
@@ -67,7 +67,6 @@ const OrganizationPage = async ({ params }) => {
         <ProjectList orgId={orgData.id} />
       </div>
       <div>
-        Show user assigned and reported issue here
       </div>
     </div>
   );

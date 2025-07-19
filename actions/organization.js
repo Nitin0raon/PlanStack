@@ -66,7 +66,7 @@ export async function getOrganization(slug) {
       return null;
     }
 
-    console.log("User is a member of the organization");
+    // console.log("User is a member of the organization");
 
     return {
       organization: org,
@@ -78,6 +78,65 @@ export async function getOrganization(slug) {
     throw new Error("Organization not found or you do not have permission to view it.");
   }
 }
+
+
+
+
+// actions/organization.js
+
+// export async function getOrganizationUsers(orgId) {
+//   const { userId } = await auth();
+//   if (!userId) {
+//     throw new Error("Unauthorized");
+//   }
+
+//   const user = await db.user.findUnique({
+//     where: { clerkUserId: userId },
+//   });
+
+//   if (!user) {
+//     throw new Error("User not found");
+//   }
+
+//   try {
+//     const organizationMemberships =
+//       await clerkClient.organizations.getOrganizationMembershipList({
+//         organizationId: orgId,
+//       });
+
+//     // IMPORTANT: Check the structure returned by Clerk.
+//     // Based on your logs, 'organizationMemberships' IS THE ARRAY.
+//     // It's not an object with a 'data' property.
+
+//     // *** REMOVED `.data` from the check ***
+//     if (!organizationMemberships || !Array.isArray(organizationMemberships)) {
+//       console.warn(`No organization memberships found or invalid data structure for orgId: ${orgId}. Received:`, organizationMemberships);
+//       return [];
+//     }
+
+//     // *** REMOVED `.data` from the map source ***
+//     const userIds = organizationMemberships.map(
+//       (membership) => membership.publicUserData.userId
+//     );
+
+//     const users = await db.user.findMany({
+//       where: {
+//         clerkUserId: {
+//           in: userIds,
+//         },
+//       },
+//     });
+//     console.log("Fetched organization users from DB:", users);
+//     return users;
+
+//   } catch (error) {
+//     console.error(`Error fetching organization memberships for orgId ${orgId}:`, error);
+//     throw error;
+//   }
+// }
+
+
+
 export async function getOrganizationUsers(orgId) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
@@ -87,22 +146,24 @@ export async function getOrganizationUsers(orgId) {
   });
   if (!requestingUser) throw new Error("User not found");
 
+  // Fetch organization memberships using Clerk
   const membershipsResponse = await clerkClient.organizations.getOrganizationMembershipList({
     organizationId: orgId,
   });
 
+  // Normalize membership list (handles both Clerk SDK styles)
   const memberships = Array.isArray(membershipsResponse)
     ? membershipsResponse
     : Array.isArray(membershipsResponse.items)
       ? membershipsResponse.items
       : [];
 
-  // Get all clerk user IDs from membership list
+  // Extract Clerk user IDs from membership list
   const clerkUserIds = memberships
     .map((m) => m.publicUserData?.userId)
     .filter(Boolean);
 
-  // Fetch corresponding users from your DB
+  // Find local users that match the Clerk IDs
   const localUsers = await db.user.findMany({
     where: {
       clerkUserId: {
@@ -111,18 +172,19 @@ export async function getOrganizationUsers(orgId) {
     },
   });
 
-  // Map local user ID + Clerk name
+  // Return combined data (local DB ID + Clerk name)
   const combinedUsers = localUsers.map((dbUser) => {
     const membership = memberships.find(
       (m) => m.publicUserData?.userId === dbUser.clerkUserId
     );
 
     return {
-      id: dbUser.id, // use local DB ID
-      name: `${membership?.publicUserData?.firstName ?? ""}`.trim(),
+      id: dbUser.id,
+      name: `${membership?.publicUserData?.firstName ?? ""} ${membership?.publicUserData?.lastName ?? ""}`.trim(),
     };
   });
 
   return combinedUsers;
 }
+
 

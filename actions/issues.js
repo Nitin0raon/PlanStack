@@ -25,7 +25,7 @@ export async function createIssue(projectId, data){
       projectId: projectId,
       sprintId: data.sprintId,
       reporterId: user.id,
-      assigneeId: data.assigneeId , // Add this line
+      assigneeId: data.assigneeId || null, 
       order: newOrder,
     },
     include: {

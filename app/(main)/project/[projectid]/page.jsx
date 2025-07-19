@@ -6,7 +6,7 @@ import SprintBoard from '../_components/sprint-board';
 
 const ProjectPage = async({params}) => {
 
-  const {projectid}=params;
+  const {projectid}= await params;
 
   const project = await getProject(projectid);
 

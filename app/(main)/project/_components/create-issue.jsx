@@ -71,7 +71,7 @@ export default function IssueCreationDrawer({
 
   useEffect(() => {
   if (isOpen && orgId) {
-    fetchUsers(orgId).then((res) => console.log("Fetched users:", res));
+    fetchUsers(orgId);
   }
 }, [isOpen, orgId]);
 
@@ -82,6 +82,13 @@ export default function IssueCreationDrawer({
       sprintId,
     });
   };
+
+  useEffect(() => {
+  if (users) {
+    console.log("Fetched org users in drawer:", users);
+  }
+}, [users]);
+
 
   useEffect(() => {
     if (newIssue) {
